@@ -91,10 +91,14 @@ trellis sprint remove <sprint-id> <TICKET-KEY>
 ### Board
 
 ```bash
+# Single project (current directory)
 trellis board [--port 4000] [--no-open]
+
+# Multiple projects with project switcher
+trellis board ./project-a ./project-b [--port 4000] [--no-open]
 ```
 
-Starts a local web server and opens the Kanban board in your browser.
+Starts a local web server and opens the Kanban board in your browser. Pass multiple paths to serve them as a single web UI with a project switcher in the header — each project keeps its own config, columns, and tickets.
 
 ### Data Export
 
@@ -124,14 +128,6 @@ Pass multiple paths to get an array of boards:
 ```bash
 trellis data --path ./project-a ./project-b
 ```
-
-### Multi-Project Board
-
-```bash
-trellis board ./project-a ./project-b [--port 4000] [--no-open]
-```
-
-Pass multiple paths to serve them as a single web UI with a project switcher in the header. Each project keeps its own config, columns, and tickets — click between them to switch boards.
 
 ### Configuration
 
