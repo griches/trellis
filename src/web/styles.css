@@ -62,28 +62,34 @@ header {
 .tabs {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
 }
 
-.tabs .btn-create {
-  margin-left: 12px;
+.tab-group {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
 }
 
 .tab {
-  padding: 6px 16px;
+  padding: 5px 14px;
   border: none;
   background: transparent;
   color: var(--text-dim);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  border-radius: var(--radius);
+  border-radius: 4px;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .tab:hover {
   color: var(--text);
-  background: var(--bg);
+  background: var(--bg-surface);
 }
 
 .tab.active {
