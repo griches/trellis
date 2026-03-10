@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trellis</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1 class="logo">Trellis</h1>
+      <span class="project-name" id="projectName"></span>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="board">Board</button>
+      <button class="tab" data-tab="backlog">Backlog</button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="board-view" class="view active">
+      <div class="board" id="board"></div>
+    </div>
+
+    <div id="backlog-view" class="view">
+      <div class="backlog" id="backlog"></div>
+    </div>
+  </main>
+
+  <!-- Ticket Detail Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="ticketModal">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span class="modal-key" id="modalKey"></span>
+          <span class="modal-type" id="modalType"></span>
+          <span class="modal-priority" id="modalPriority"></span>
+        </div>
+        <button class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Create Ticket Modal -->
+  <div class="modal-overlay" id="createOverlay">
+    <div class="modal" id="createModal">
+      <div class="modal-header">
+        <h2>Create Ticket</h2>
+        <button class="modal-close" id="createClose">&times;</button>
+      </div>
+      <form class="modal-body create-form" id="createForm">
+        <label>Summary *
+          <input type="text" name="summary" required>
+        </label>
+        <div class="form-row">
+          <label>Type
+            <select name="type" id="createType"></select>
+          </label>
+          <label>Priority
+            <select name="priority" id="createPriority"></select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Assignee
+            <input type="text" name="assignee">
+          </label>
+          <label>Status
+            <select name="status" id="createStatus"></select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Points
+            <select name="points" id="createPoints"><option value="">–</option></select>
+          </label>
+          <label>Size
+            <select name="tshirtSize" id="createSize"><option value="">–</option></select>
+          </label>
+        </div>
+        <label>Description
+          <textarea name="description" rows="3"></textarea>
+        </label>
+        <label>Acceptance Criteria
+          <textarea name="acceptanceCriteria" rows="3"></textarea>
+        </label>
+        <label>Labels (comma-separated)
+          <input type="text" name="labels">
+        </label>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="createCancel">Cancel</button>
+          <button type="submit" class="btn-primary">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

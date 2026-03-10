@@ -1,0 +1,23 @@
+{
+  "name": "trellis-pm",
+  "version": "0.1.0",
+  "description": "Local-first project boards backed by flat files",
+  "type": "module",
+  "bin": {
+    "trellis": "./bin/trellis.js",
+    "trl": "./bin/trellis.js"
+  },
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "node --watch src/server/index.js",
+    "test": "node --test test/**/*.test.js"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^13.1.0",
+    "express": "^5.1.0",
+    "nanoid": "^5.1.5",
+    "open": "^10.1.0"
+  }
+}
