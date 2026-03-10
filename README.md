@@ -6,6 +6,12 @@ Trellis is a lightweight, self-hosted alternative to Jira that runs entirely on 
 
 Manage tickets from the CLI or through a web-based Kanban board.
 
+![Board view](screenshots/board.png)
+
+![Ticket detail](screenshots/ticket-detail.png)
+
+![Backlog](screenshots/backlog.png)
+
 ## Quick Start
 
 ```bash
