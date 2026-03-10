@@ -53,24 +53,20 @@ header {
 }
 
 .logo {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: -0.5px;
-}
-
-.project-name {
-  font-size: 14px;
-  color: var(--text-dim);
-  padding: 4px 10px;
-  background: var(--bg);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
 }
 
 .tabs {
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+
+.tabs .btn-create {
+  margin-left: 12px;
 }
 
 .tab {
@@ -189,19 +185,30 @@ header {
 
 /* Cards */
 .card {
-  padding: 12px;
+  padding: 14px 14px 14px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
+  border-left: 3px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.15s;
   user-select: none;
 }
 
+.card.priority-left-Critical { border-left-color: var(--red); }
+.card.priority-left-High { border-left-color: var(--orange); }
+.card.priority-left-Medium { border-left-color: var(--yellow); }
+.card.priority-left-Low { border-left-color: var(--text-muted); }
+
 .card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border);
 }
+
+.card:hover.priority-left-Critical { border-left-color: var(--red); }
+.card:hover.priority-left-High { border-left-color: var(--orange); }
+.card:hover.priority-left-Medium { border-left-color: var(--yellow); }
+.card:hover.priority-left-Low { border-left-color: var(--text-muted); }
 
 .card.dragging {
   opacity: 0.4;
@@ -211,7 +218,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .card-key {
@@ -223,8 +230,8 @@ header {
 .card-priority {
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 3px 8px;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -236,9 +243,9 @@ header {
 
 .card-summary {
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.5;
   color: var(--text);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .card-meta {
@@ -257,8 +264,8 @@ header {
   font-size: 11px;
   color: var(--text-dim);
   background: var(--bg);
-  padding: 1px 6px;
-  border-radius: 3px;
+  padding: 3px 8px;
+  border-radius: 4px;
 }
 
 .card-points {
@@ -266,8 +273,8 @@ header {
   font-weight: 600;
   color: var(--purple);
   background: rgba(188, 140, 255, 0.1);
-  padding: 1px 6px;
-  border-radius: 3px;
+  padding: 3px 8px;
+  border-radius: 4px;
 }
 
 .card-labels {
@@ -409,7 +416,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 20px 28px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -455,26 +462,26 @@ header {
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 28px;
 }
 
 .modal-body h3 {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 18px 24px;
+  margin-bottom: 28px;
 }
 
 .detail-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .detail-label {
@@ -490,13 +497,27 @@ header {
   color: var(--text);
 }
 
+select.detail-value {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+select.detail-value:focus {
+  outline: none;
+  border-color: var(--accent-dim);
+}
+
 .detail-value.empty {
   color: var(--text-muted);
   font-style: italic;
 }
 
 .detail-section {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .detail-section h4 {
@@ -505,7 +526,7 @@ header {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .detail-section p,
@@ -530,9 +551,32 @@ header {
 }
 
 .comment-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 11px;
   color: var(--text-muted);
   margin-bottom: 4px;
+}
+
+.comment-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.comment-item:hover .comment-delete {
+  opacity: 1;
+}
+
+.comment-delete:hover {
+  color: var(--red);
 }
 
 .comment-body {
@@ -571,7 +615,7 @@ header {
 .create-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .create-form label {

@@ -93,6 +93,36 @@ trellis board [--port 4000] [--no-open]
 
 Starts a local web server and opens the Kanban board in your browser.
 
+### Data Export
+
+```bash
+# Full board data (config + tickets + sprints) as JSON
+trellis data
+
+# Point at a remote project directory
+trellis data --path /path/to/other/project
+
+# Just tickets or just config
+trellis data --tickets-only
+trellis data --config-only
+
+# Filter
+trellis data --status in-progress
+trellis data --sprint sprint-1
+
+# Compact (no sprints)
+trellis data --compact
+```
+
+Outputs everything needed to render a board as JSON. Use this to feed data into other services, aggregate multiple projects into a single dashboard, or build custom integrations.
+
+Example: pull multiple projects into one view:
+
+```bash
+trellis data --path ./project-a > /tmp/a.json
+trellis data --path ./project-b > /tmp/b.json
+```
+
 ### Configuration
 
 ```bash
@@ -108,7 +138,7 @@ The board has two views:
 - **Board** — Kanban columns with drag-and-drop. Columns are driven by your project config, not hardcoded.
 - **Backlog** — Table view of all backlog and unassigned tickets.
 
-Click any ticket to see full details, change status, and add comments. Create tickets directly from the board with the "+ Add ticket" button.
+Click any ticket to see full details, change status, and add comments. Create tickets directly from the header.
 
 ## Data Storage
 
@@ -162,6 +192,7 @@ The CLI is available as both `trellis` and `trl`. Subcommands have short aliases
 | `trellis comment` | `trl c` |
 | `trellis sprint` | `trl s` |
 | `trellis board` | `trl b` |
+| `trellis data` | `trl d` |
 
 ## License
 

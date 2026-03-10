@@ -21,6 +21,19 @@ export function addComment(trellisPath, key, { author, body }) {
 }
 
 /**
+ * Delete a comment from a ticket by comment ID.
+ */
+export function deleteComment(trellisPath, key, commentId) {
+  const ticket = loadTicket(trellisPath, key);
+  const before = (ticket.comments || []).length;
+  ticket.comments = (ticket.comments || []).filter(c => c.id !== commentId);
+  if (ticket.comments.length === before) {
+    throw new Error(`Comment ${commentId} not found on ${key}`);
+  }
+  saveTicket(trellisPath, ticket);
+}
+
+/**
  * List comments for a ticket.
  */
 export function listComments(trellisPath, key) {

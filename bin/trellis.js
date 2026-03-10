@@ -7,6 +7,7 @@ import { registerCommentCommand } from '../src/cli/commands/comment.js';
 import { registerBoardCommand } from '../src/cli/commands/board.js';
 import { registerSprintCommand } from '../src/cli/commands/sprint.js';
 import { registerConfigCommand } from '../src/cli/commands/config.js';
+import { registerDataCommand } from '../src/cli/commands/data.js';
 
 program
   .name('trellis')
@@ -19,5 +20,6 @@ registerCommentCommand(program);
 registerBoardCommand(program);
 registerSprintCommand(program);
 registerConfigCommand(program);
+registerDataCommand(program);
 
 program.parse();

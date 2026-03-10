@@ -1,4 +1,4 @@
-import { addComment, listComments } from '../../core/comment.js';
+import { addComment, deleteComment, listComments } from '../../core/comment.js';
 
 export function registerCommentRoutes(app) {
   app.get('/api/tickets/:key/comments', (req, res) => {
@@ -16,6 +16,15 @@ export function registerCommentRoutes(app) {
       res.status(201).json(comment);
     } catch (err) {
       res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.delete('/api/tickets/:key/comments/:commentId', (req, res) => {
+    try {
+      deleteComment(req.trellisPath, req.params.key.toUpperCase(), req.params.commentId);
+      res.json({ ok: true });
+    } catch (err) {
+      res.status(404).json({ error: err.message });
     }
   });
 }

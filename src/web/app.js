@@ -79,21 +79,13 @@ function renderBoard() {
     }
 
     colEl.appendChild(body);
-
-    // Add button
-    const addBtn = document.createElement('button');
-    addBtn.className = 'column-add';
-    addBtn.textContent = '+ Add ticket';
-    addBtn.addEventListener('click', () => openCreateModal(col.id));
-    colEl.appendChild(addBtn);
-
     boardEl.appendChild(colEl);
   }
 }
 
 function createCard(ticket) {
   const card = document.createElement('div');
-  card.className = 'card';
+  card.className = `card priority-left-${ticket.priority}`;
   card.draggable = true;
   card.dataset.key = ticket.key;
 
@@ -109,9 +101,6 @@ function createCard(ticket) {
   let metaRight = '';
   if (ticket.points != null) {
     metaRight += `<span class="card-points">${ticket.points}pt</span>`;
-  }
-  if (ticket.assignee) {
-    metaRight += `<span class="card-assignee">${ticket.assignee}</span>`;
   }
 
   let labelsHtml = '';
@@ -147,7 +136,6 @@ function renderBacklog() {
   backlogEl.innerHTML = `
     <div class="backlog-header">
       <h2>Backlog <span style="color:var(--text-muted);font-weight:400">(${backlogTickets.length})</span></h2>
-      <button class="btn-create" id="backlogCreateBtn">+ Create Ticket</button>
     </div>
     ${renderTicketTable(backlogTickets)}
     ${sprintTickets.length ? `
@@ -157,8 +145,6 @@ function renderBacklog() {
       ${renderTicketTable(sprintTickets)}
     ` : ''}
   `;
-
-  document.getElementById('backlogCreateBtn')?.addEventListener('click', () => openCreateModal('backlog'));
 }
 
 function renderTicketTable(ticketList) {
@@ -271,7 +257,10 @@ async function openTicketModal(key) {
       <div class="comments-list">
         ${(ticket.comments || []).map(c => `
           <div class="comment-item">
-            <div class="comment-meta">${escapeHtml(c.author)} &middot; ${new Date(c.created).toLocaleString()}</div>
+            <div class="comment-meta">
+              <span>${escapeHtml(c.author)} &middot; ${new Date(c.created).toLocaleString()}</span>
+              <button class="comment-delete" data-ticket="${ticket.key}" data-comment="${c.id}">&times;</button>
+            </div>
             <div class="comment-body">${escapeHtml(c.body)}</div>
           </div>
         `).join('')}
@@ -307,6 +296,14 @@ async function openTicketModal(key) {
     if (e.key === 'Enter') document.getElementById('commentSubmit').click();
   });
 
+  // Delete comment handlers
+  body.querySelectorAll('.comment-delete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await api(`/tickets/${btn.dataset.ticket}/comments/${btn.dataset.comment}`, { method: 'DELETE' });
+      openTicketModal(ticket.key);
+    });
+  });
+
   overlay.classList.add('open');
 }
 
@@ -316,6 +313,13 @@ document.getElementById('modalClose').addEventListener('click', () => {
 });
 document.getElementById('modalOverlay').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+});
+
+// ── Header Create Button ──
+
+document.getElementById('headerCreateBtn').addEventListener('click', () => {
+  const backlogCol = config.board.columns.find(c => c.isBacklog);
+  openCreateModal(backlogCol ? backlogCol.id : config.board.columns[0].id);
 });
 
 // ── Create Modal ──
@@ -402,7 +406,7 @@ function escapeHtml(str) {
 async function refresh() {
   await loadData();
   document.getElementById('projectName').textContent = config.project.name;
-  document.title = `${config.project.name} – Trellis`;
+  document.title = config.project.name;
   renderBoard();
   renderBacklog();
 }
