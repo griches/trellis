@@ -1,3 +1,5 @@
+let projects = [];
+let currentProject = null;
 let config = null;
 let tickets = [];
 
@@ -13,10 +15,42 @@ async function api(path, opts = {}) {
   return res.json();
 }
 
-async function loadData() {
+function projectApi(path, opts) {
+  return api(`/projects/${currentProject.key}${path}`, opts);
+}
+
+// ── Project Switcher ──
+
+async function loadProjects() {
+  projects = await api('/projects');
+  renderProjectSwitcher();
+  if (projects.length > 0) {
+    await switchProject(projects[0].key);
+  }
+}
+
+function renderProjectSwitcher() {
+  const el = document.getElementById('projectSwitcher');
+  el.innerHTML = projects.map(p =>
+    `<button class="project-btn ${p.key === currentProject?.key ? 'active' : ''}" data-key="${p.key}">${p.name}</button>`
+  ).join('');
+
+  el.querySelectorAll('.project-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchProject(btn.dataset.key));
+  });
+}
+
+async function switchProject(key) {
+  currentProject = projects.find(p => p.key === key);
+  await loadProjectData();
+  renderProjectSwitcher();
+  render();
+}
+
+async function loadProjectData() {
   [config, tickets] = await Promise.all([
-    api('/config'),
-    api('/tickets')
+    projectApi('/config'),
+    projectApi('/tickets')
   ]);
 }
 
@@ -37,7 +71,6 @@ function renderBoard() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
 
-  // Filter out backlog columns for the board view
   const boardColumns = config.board.columns.filter(c => !c.isBacklog);
 
   for (const col of boardColumns) {
@@ -56,7 +89,6 @@ function renderBoard() {
     body.className = 'column-body';
     body.dataset.status = col.id;
 
-    // Drop zone events
     body.addEventListener('dragover', e => {
       e.preventDefault();
       body.classList.add('drag-over');
@@ -69,8 +101,8 @@ function renderBoard() {
       body.classList.remove('drag-over');
       const key = e.dataTransfer.getData('text/plain');
       if (key) {
-        await api(`/tickets/${key}`, { method: 'PUT', body: { status: col.id } });
-        await refresh();
+        await projectApi(`/tickets/${key}`, { method: 'PUT', body: { status: col.id } });
+        await refreshData();
       }
     });
 
@@ -158,7 +190,6 @@ function renderTicketTable(ticketList) {
           <th>Priority</th>
           <th>Summary</th>
           <th>Status</th>
-          <th>Assignee</th>
           <th>Pts</th>
         </tr>
       </thead>
@@ -170,7 +201,6 @@ function renderTicketTable(ticketList) {
             <td><span class="card-priority priority-${t.priority}">${t.priority}</span></td>
             <td class="summary-cell">${escapeHtml(t.summary)}</td>
             <td class="status-cell"><span class="status-badge">${colMap[t.status] || t.status}</span></td>
-            <td>${t.assignee || '<span style="color:var(--text-muted)">–</span>'}</td>
             <td>${t.points != null ? t.points : '<span style="color:var(--text-muted)">–</span>'}</td>
           </tr>
         `).join('')}
@@ -182,9 +212,8 @@ function renderTicketTable(ticketList) {
 // ── Ticket Detail Modal ──
 
 async function openTicketModal(key) {
-  const ticket = await api(`/tickets/${key}`);
+  const ticket = await projectApi(`/tickets/${key}`);
   const overlay = document.getElementById('modalOverlay');
-  const colMap = Object.fromEntries(config.board.columns.map(c => [c.id, c.name]));
 
   document.getElementById('modalKey').textContent = ticket.key;
   document.getElementById('modalType').textContent = ticket.type;
@@ -271,30 +300,27 @@ async function openTicketModal(key) {
     </div>
   `;
 
-  // Status change handler
   document.getElementById('detailStatus').addEventListener('change', async (e) => {
-    await api(`/tickets/${ticket.key}`, { method: 'PUT', body: { status: e.target.value } });
-    await refresh();
+    await projectApi(`/tickets/${ticket.key}`, { method: 'PUT', body: { status: e.target.value } });
+    await refreshData();
   });
 
-  // Comment handler
   document.getElementById('commentSubmit').addEventListener('click', async () => {
     const input = document.getElementById('commentInput');
-    const body = input.value.trim();
-    if (!body) return;
-    await api(`/tickets/${ticket.key}/comments`, { method: 'POST', body: { body, author: 'me' } });
+    const text = input.value.trim();
+    if (!text) return;
+    await projectApi(`/tickets/${ticket.key}/comments`, { method: 'POST', body: { body: text, author: 'me' } });
     input.value = '';
-    openTicketModal(ticket.key); // re-render
+    openTicketModal(ticket.key);
   });
 
   document.getElementById('commentInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('commentSubmit').click();
   });
 
-  // Delete comment handlers
   body.querySelectorAll('.comment-delete').forEach(btn => {
     btn.addEventListener('click', async () => {
-      await api(`/tickets/${btn.dataset.ticket}/comments/${btn.dataset.comment}`, { method: 'DELETE' });
+      await projectApi(`/tickets/${btn.dataset.ticket}/comments/${btn.dataset.comment}`, { method: 'DELETE' });
       openTicketModal(ticket.key);
     });
   });
@@ -313,6 +339,7 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
 // ── Header Create Button ──
 
 document.getElementById('headerCreateBtn').addEventListener('click', () => {
+  if (!config) return;
   const backlogCol = config.board.columns.find(c => c.isBacklog);
   openCreateModal(backlogCol ? backlogCol.id : config.board.columns[0].id);
 });
@@ -322,7 +349,6 @@ document.getElementById('headerCreateBtn').addEventListener('click', () => {
 function openCreateModal(defaultStatus = 'backlog') {
   const overlay = document.getElementById('createOverlay');
 
-  // Populate selects
   const typeSelect = document.getElementById('createType');
   typeSelect.innerHTML = config.fields.types.map(t => `<option>${t}</option>`).join('');
 
@@ -342,7 +368,6 @@ function openCreateModal(defaultStatus = 'backlog') {
   sizeSelect.innerHTML = '<option value="">–</option>' +
     (config.fields.tshirtSizes || []).map(s => `<option value="${s}">${s}</option>`).join('');
 
-  // Reset form
   document.getElementById('createForm').reset();
   statusSelect.value = defaultStatus;
   prioritySelect.value = 'Medium';
@@ -367,9 +392,9 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
   if (form.tshirtSize.value) data.tshirtSize = form.tshirtSize.value;
   if (form.labels.value) data.labels = form.labels.value.split(',').map(l => l.trim()).filter(Boolean);
 
-  await api('/tickets', { method: 'POST', body: data });
+  await projectApi('/tickets', { method: 'POST', body: data });
   document.getElementById('createOverlay').classList.remove('open');
-  await refresh();
+  await refreshData();
 });
 
 document.getElementById('createClose').addEventListener('click', () => {
@@ -396,14 +421,20 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ── Init ──
+// ── Render ──
 
-async function refresh() {
-  await loadData();
+function render() {
   document.getElementById('projectName').textContent = config.project.name;
   document.title = config.project.name;
   renderBoard();
   renderBacklog();
 }
 
-refresh();
+async function refreshData() {
+  await loadProjectData();
+  render();
+}
+
+// ── Init ──
+
+loadProjects();

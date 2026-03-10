@@ -116,12 +116,19 @@ trellis data --compact
 
 Outputs everything needed to render a board as JSON. Use this to feed data into other services, aggregate multiple projects into a single dashboard, or build custom integrations.
 
-Example: pull multiple projects into one view:
+Pass multiple paths to get an array of boards:
 
 ```bash
-trellis data --path ./project-a > /tmp/a.json
-trellis data --path ./project-b > /tmp/b.json
+trellis data --path ./project-a ./project-b
 ```
+
+### Multi-Project Server
+
+```bash
+trellis serve ./project-a ./project-b [--port 4000] [--no-open]
+```
+
+Serves multiple Trellis projects as a single web UI with a project switcher in the header. Each project keeps its own config, columns, and tickets — click between them to switch boards.
 
 ### Configuration
 
@@ -136,7 +143,7 @@ trellis config set server.port 3000   # Set a value
 The board has two views:
 
 - **Board** — Kanban columns with drag-and-drop. Columns are driven by your project config, not hardcoded.
-- **Backlog** — Table view of all backlog and unassigned tickets.
+- **Backlog** — Table view of tickets in columns marked `isBacklog: true`. Only tickets explicitly in a backlog status appear here — board tickets stay on the board.
 
 Click any ticket to see full details, change status, and add comments. Create tickets directly from the header.
 
@@ -193,6 +200,7 @@ The CLI is available as both `trellis` and `trl`. Subcommands have short aliases
 | `trellis sprint` | `trl s` |
 | `trellis board` | `trl b` |
 | `trellis data` | `trl d` |
+| `trellis serve` | – |
 
 ## License
 
