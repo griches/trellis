@@ -194,60 +194,72 @@ async function openTicketModal(key) {
 
   const body = document.getElementById('modalBody');
   body.innerHTML = `
-    <h3>${escapeHtml(ticket.summary)}</h3>
+    <div class="edit-form">
+      <label class="edit-label">Summary
+        <input type="text" id="editSummary" class="edit-input" value="${escapeAttr(ticket.summary)}">
+      </label>
 
-    <div class="detail-grid">
-      <div class="detail-item">
-        <span class="detail-label">Status</span>
-        <select class="detail-value" id="detailStatus">
-          ${config.board.columns.map(c => `<option value="${c.id}" ${c.id === ticket.status ? 'selected' : ''}>${c.name}</option>`).join('')}
-        </select>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Status</span>
+          <select class="edit-select" id="editStatus">
+            ${config.board.columns.map(c => `<option value="${c.id}" ${c.id === ticket.status ? 'selected' : ''}>${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Priority</span>
+          <select class="edit-select" id="editPriority">
+            ${config.fields.priorities.map(p => `<option ${p === ticket.priority ? 'selected' : ''}>${p}</option>`).join('')}
+          </select>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Type</span>
+          <select class="edit-select" id="editType">
+            ${config.fields.types.map(t => `<option ${t === ticket.type ? 'selected' : ''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Assignee</span>
+          <input type="text" class="edit-input-sm" id="editAssignee" value="${escapeAttr(ticket.assignee || '')}">
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Story Points</span>
+          <select class="edit-select" id="editPoints">
+            <option value="">–</option>
+            ${(config.fields.pointScale || []).map(p => `<option value="${p}" ${p === ticket.points ? 'selected' : ''}>${p}</option>`).join('')}
+          </select>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">T-Shirt Size</span>
+          <select class="edit-select" id="editSize">
+            <option value="">–</option>
+            ${(config.fields.tshirtSizes || []).map(s => `<option value="${s}" ${s === ticket.tshirtSize ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Reporter</span>
+          <input type="text" class="edit-input-sm" id="editReporter" value="${escapeAttr(ticket.reporter || '')}">
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Labels</span>
+          <input type="text" class="edit-input-sm" id="editLabels" value="${escapeAttr((ticket.labels || []).join(', '))}">
+        </div>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Assignee</span>
-        <span class="detail-value ${ticket.assignee ? '' : 'empty'}">${ticket.assignee || 'Unassigned'}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Reporter</span>
-        <span class="detail-value ${ticket.reporter ? '' : 'empty'}">${ticket.reporter || 'None'}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Priority</span>
-        <span class="detail-value">${ticket.priority}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Story Points</span>
-        <span class="detail-value ${ticket.points != null ? '' : 'empty'}">${ticket.points != null ? ticket.points : 'None'}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">T-Shirt Size</span>
-        <span class="detail-value ${ticket.tshirtSize ? '' : 'empty'}">${ticket.tshirtSize || 'None'}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Sprint</span>
-        <span class="detail-value ${ticket.sprint ? '' : 'empty'}">${ticket.sprint || 'None'}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Labels</span>
-        <span class="detail-value ${ticket.labels?.length ? '' : 'empty'}">${ticket.labels?.length ? ticket.labels.join(', ') : 'None'}</span>
+
+      <label class="edit-label">Description
+        <textarea class="edit-textarea" id="editDescription" rows="4">${escapeHtml(ticket.description || '')}</textarea>
+      </label>
+
+      <label class="edit-label">Acceptance Criteria
+        <textarea class="edit-textarea" id="editAC" rows="4">${escapeHtml(ticket.acceptanceCriteria || '')}</textarea>
+      </label>
+
+      <div class="edit-actions">
+        <button class="btn-primary" id="editSave">Save</button>
       </div>
     </div>
 
-    ${ticket.description ? `
-      <div class="detail-section">
-        <h4>Description</h4>
-        <p>${escapeHtml(ticket.description)}</p>
-      </div>
-    ` : ''}
-
-    ${ticket.acceptanceCriteria ? `
-      <div class="detail-section">
-        <h4>Acceptance Criteria</h4>
-        <pre>${escapeHtml(ticket.acceptanceCriteria)}</pre>
-      </div>
-    ` : ''}
-
-    <div class="detail-section">
+    <div class="detail-section" style="margin-top:24px">
       <h4>Comments (${ticket.comments?.length || 0})</h4>
       <div class="comments-list">
         ${(ticket.comments || []).map(c => `
@@ -271,20 +283,34 @@ async function openTicketModal(key) {
     </div>
   `;
 
-  // Status change handler
-  document.getElementById('detailStatus').addEventListener('change', async (e) => {
-    await api(`/tickets/${ticket.key}`, { method: 'PUT', body: { status: e.target.value } });
+  // Save handler
+  document.getElementById('editSave').addEventListener('click', async () => {
+    const fields = {
+      summary: document.getElementById('editSummary').value,
+      status: document.getElementById('editStatus').value,
+      priority: document.getElementById('editPriority').value,
+      type: document.getElementById('editType').value,
+      assignee: document.getElementById('editAssignee').value,
+      reporter: document.getElementById('editReporter').value,
+      description: document.getElementById('editDescription').value,
+      acceptanceCriteria: document.getElementById('editAC').value,
+      points: document.getElementById('editPoints').value ? parseInt(document.getElementById('editPoints').value) : null,
+      tshirtSize: document.getElementById('editSize').value || null,
+      labels: document.getElementById('editLabels').value ? document.getElementById('editLabels').value.split(',').map(l => l.trim()).filter(Boolean) : [],
+    };
+    await api(`/tickets/${ticket.key}`, { method: 'PUT', body: fields });
     await refresh();
+    openTicketModal(ticket.key);
   });
 
   // Comment handler
   document.getElementById('commentSubmit').addEventListener('click', async () => {
     const input = document.getElementById('commentInput');
-    const body = input.value.trim();
-    if (!body) return;
-    await api(`/tickets/${ticket.key}/comments`, { method: 'POST', body: { body, author: 'me' } });
+    const text = input.value.trim();
+    if (!text) return;
+    await api(`/tickets/${ticket.key}/comments`, { method: 'POST', body: { body: text, author: 'me' } });
     input.value = '';
-    openTicketModal(ticket.key); // re-render
+    openTicketModal(ticket.key);
   });
 
   document.getElementById('commentInput').addEventListener('keydown', (e) => {
@@ -394,6 +420,11 @@ document.addEventListener('click', (e) => {
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escapeAttr(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ── Init ──
