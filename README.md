@@ -145,7 +145,7 @@ The board has two views:
 - **Board** — Kanban columns with drag-and-drop. Columns are driven by your project config, not hardcoded.
 - **Backlog** — Table view of tickets in columns marked `isBacklog: true`. Only tickets explicitly in a backlog status appear here — board tickets stay on the board.
 
-Click any ticket to see full details, change status, and add comments. Create tickets directly from the header.
+Click any ticket to edit all fields inline — summary, status, priority, type, assignee, points, size, description, acceptance criteria, and labels. Hit Save to persist changes. Add and delete comments from the same view. Create new tickets from the header.
 
 ## Data Storage
 
