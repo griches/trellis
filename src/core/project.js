@@ -17,7 +17,8 @@ const DEFAULT_CONFIG = {
       { id: 'todo', name: 'To Do' },
       { id: 'in-progress', name: 'In Progress' },
       { id: 'review', name: 'Code Review' },
-      { id: 'done', name: 'Done', isDone: true }
+      { id: 'done', name: 'Done', isDone: true },
+      { id: 'archived', name: 'Archived', isArchive: true }
     ]
   },
   fields: {

@@ -63,6 +63,9 @@ trellis ticket update <KEY> --priority Critical --points 8
 # Move to a status
 trellis ticket move <KEY> in-progress
 
+# Archive a completed ticket
+trellis ticket archive <KEY>
+
 # Delete
 trellis ticket delete <KEY> [-f]
 ```
@@ -140,10 +143,11 @@ trellis config set server.port 3000   # Set a value
 
 ## Web UI
 
-The board has two views:
+The board has three views:
 
 - **Board** — Kanban columns with drag-and-drop. Columns are driven by your project config, not hardcoded.
 - **Backlog** — Table view of tickets in columns marked `isBacklog: true`. Only tickets explicitly in a backlog status appear here — board tickets stay on the board.
+- **Archive** — Table view of completed tickets moved to columns marked `isArchive: true`. Use this to keep finished work out of the board without deleting it.
 
 Click any ticket to edit all fields inline — summary, status, priority, type, assignee, points, size, description, acceptance criteria, and labels. Hit Save to persist changes. Add and delete comments from the same view. Create new tickets from the header.
 
@@ -179,11 +183,12 @@ trellis config set board.columns '[
   {"id":"in-progress","name":"In Progress"},
   {"id":"review","name":"Code Review"},
   {"id":"qa","name":"QA"},
-  {"id":"done","name":"Done","isDone":true}
+  {"id":"done","name":"Done","isDone":true},
+  {"id":"archived","name":"Archived","isArchive":true}
 ]'
 ```
 
-The `isBacklog` flag puts a column in the Backlog tab instead of the Board. The `isDone` flag marks completion columns.
+The `isBacklog` flag puts a column in the Backlog tab instead of the Board. The `isDone` flag marks completion columns. The `isArchive` flag creates an Archive tab for finished tickets.
 
 ## Aliases
 

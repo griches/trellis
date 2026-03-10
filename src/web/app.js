@@ -37,8 +37,8 @@ function renderBoard() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
 
-  // Filter out backlog columns for the board view
-  const boardColumns = config.board.columns.filter(c => !c.isBacklog);
+  // Filter out backlog and archive columns for the board view
+  const boardColumns = config.board.columns.filter(c => !c.isBacklog && !c.isArchive);
 
   for (const col of boardColumns) {
     const colTickets = tickets.filter(t => t.status === col.id);
@@ -139,6 +139,24 @@ function renderBacklog() {
     ${backlogColIds.length === 0
       ? '<p style="color:var(--text-muted);padding:20px 0;text-align:center">No backlog column configured. Add a column with <code>"isBacklog": true</code> to your board config.</p>'
       : renderTicketTable(backlogTickets)}
+  `;
+}
+
+// ── Archive ──
+
+function renderArchive() {
+  const archiveEl = document.getElementById('archive');
+
+  const archiveColIds = config.board.columns.filter(c => c.isArchive).map(c => c.id);
+  const archivedTickets = tickets.filter(t => archiveColIds.includes(t.status));
+
+  archiveEl.innerHTML = `
+    <div class="backlog-header">
+      <h2>Archive <span style="color:var(--text-muted);font-weight:400">(${archivedTickets.length})</span></h2>
+    </div>
+    ${archiveColIds.length === 0
+      ? '<p style="color:var(--text-muted);padding:20px 0;text-align:center">No archive column configured. Add a column with <code>"isArchive": true</code> to your board config.</p>'
+      : renderTicketTable(archivedTickets)}
   `;
 }
 
@@ -435,6 +453,7 @@ async function refresh() {
   document.title = config.project.name;
   renderBoard();
   renderBacklog();
+  renderArchive();
 }
 
 refresh();

@@ -255,6 +255,29 @@ export function registerTicketCommand(program) {
       }
     });
 
+  // ARCHIVE
+  ticket
+    .command('archive <key>')
+    .description('Archive a completed ticket')
+    .action((key, opts) => {
+      try {
+        const trellisPath = requireProject();
+        const config = loadConfig(trellisPath);
+        const archiveCol = config.board.columns.find(c => c.isArchive);
+
+        if (!archiveCol) {
+          console.error(chalk.red('No archive column configured. Add a column with "isArchive": true to your board config.'));
+          process.exit(1);
+        }
+
+        const ticket = updateTicket(trellisPath, key.toUpperCase(), { status: archiveCol.id });
+        console.log(chalk.green(`✓ ${chalk.bold(ticket.key)} → ${archiveCol.name}`));
+      } catch (err) {
+        console.error(chalk.red(err.message));
+        process.exit(1);
+      }
+    });
+
   // DELETE
   ticket
     .command('delete <key>')
