@@ -125,13 +125,13 @@ Pass multiple paths to get an array of boards:
 trellis data --path ./project-a ./project-b
 ```
 
-### Multi-Project Server
+### Multi-Project Board
 
 ```bash
-trellis serve ./project-a ./project-b [--port 4000] [--no-open]
+trellis board ./project-a ./project-b [--port 4000] [--no-open]
 ```
 
-Serves multiple Trellis projects as a single web UI with a project switcher in the header. Each project keeps its own config, columns, and tickets — click between them to switch boards.
+Pass multiple paths to serve them as a single web UI with a project switcher in the header. Each project keeps its own config, columns, and tickets — click between them to switch boards.
 
 ### Configuration
 
@@ -205,7 +205,6 @@ The CLI is available as both `trellis` and `trl`. Subcommands have short aliases
 | `trellis sprint` | `trl s` |
 | `trellis board` | `trl b` |
 | `trellis data` | `trl d` |
-| `trellis serve` | – |
 
 ## License
 
