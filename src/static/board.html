@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trellis</title>
+  <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0d1117;
+  --bg-surface: #161b22;
+  --bg-card: #1c2129;
+  --bg-card-hover: #22272e;
+  --bg-input: #0d1117;
+  --border: #30363d;
+  --border-light: #21262d;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --text-muted: #6e7681;
+  --accent: #58a6ff;
+  --accent-dim: #1f6feb;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --orange: #db6d28;
+  --red: #f85149;
+  --purple: #bc8cff;
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Login */
+#login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px;
+  width: 340px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.login-card h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.login-card p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  margin-bottom: 14px;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: var(--accent-dim);
+}
+
+.login-card button {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent-dim);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.login-card button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.login-error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 10px;
+  display: none;
+}
+
+/* App (hidden until auth) */
+#app {
+  display: none;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tab-group {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+}
+
+.tab {
+  padding: 5px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: var(--bg-surface);
+}
+
+.tab.active {
+  color: var(--text);
+  background: var(--accent-dim);
+}
+
+/* Views */
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+/* Board */
+.board {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  overflow-x: auto;
+  min-height: calc(100vh - 57px);
+}
+
+.column {
+  flex: 1;
+  min-width: 260px;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+}
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+}
+
+.column-header h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.column-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.column-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+  border-radius: var(--radius);
+  min-height: 60px;
+}
+
+/* Cards */
+.card {
+  padding: 14px 14px 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.card.priority-left-Critical { border-left-color: var(--red); }
+.card.priority-left-High { border-left-color: var(--orange); }
+.card.priority-left-Medium { border-left-color: var(--yellow); }
+.card.priority-left-Low { border-left-color: var(--text-muted); }
+
+.card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border);
+}
+
+.card:hover.priority-left-Critical { border-left-color: var(--red); }
+.card:hover.priority-left-High { border-left-color: var(--orange); }
+.card:hover.priority-left-Medium { border-left-color: var(--yellow); }
+.card:hover.priority-left-Low { border-left-color: var(--text-muted); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.card-key {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.card-priority {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.priority-Critical { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+.priority-High { background: rgba(219, 109, 40, 0.15); color: var(--orange); }
+.priority-Medium { background: rgba(210, 153, 34, 0.15); color: var(--yellow); }
+.priority-Low { background: rgba(139, 148, 158, 0.1); color: var(--text-muted); }
+
+.card-summary {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.card-type {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.card-points {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--purple);
+  background: rgba(188, 140, 255, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.card-labels {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.card-label {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(88, 166, 255, 0.1);
+  color: var(--accent);
+}
+
+/* Backlog / Archive table */
+.backlog {
+  padding: 20px 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.backlog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.backlog-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.backlog-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.backlog-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.backlog-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.backlog-table tr {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.backlog-table tbody tr:hover {
+  background: var(--bg-surface);
+}
+
+.backlog-table .key-cell {
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.backlog-table .summary-cell {
+  max-width: 400px;
+}
+
+.backlog-table .status-cell {
+  white-space: nowrap;
+}
+
+.status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 200;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 60px;
+  overflow-y: auto;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 640px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  margin-bottom: 60px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-key {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.modal-type {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.modal-priority {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 28px;
+}
+
+.modal-body h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 24px;
+  margin-bottom: 28px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.detail-value {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.detail-value.empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section h4 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.detail-section p,
+.detail-section pre {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment-item {
+  padding: 10px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.comment-body {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+  </style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="login-card">
+      <h1 id="loginTitle">Trellis</h1>
+      <p>Enter the board password to continue.</p>
+      <form id="loginForm">
+        <input type="password" id="loginPassword" placeholder="Password" autocomplete="off" autofocus>
+        <button type="submit">Sign In</button>
+      </form>
+      <div class="login-error" id="loginError">Incorrect password.</div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app">
+    <header>
+      <div class="header-left">
+        <h1 class="logo" id="projectName"></h1>
+      </div>
+      <nav class="tabs">
+        <div class="tab-group">
+          <button class="tab active" data-tab="board">Board</button>
+          <button class="tab" data-tab="backlog">Backlog</button>
+          <button class="tab" data-tab="archive">Archive</button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <div id="board-view" class="view active">
+        <div class="board" id="board"></div>
+      </div>
+
+      <div id="backlog-view" class="view">
+        <div class="backlog" id="backlog"></div>
+      </div>
+
+      <div id="archive-view" class="view">
+        <div class="backlog" id="archive"></div>
+      </div>
+    </main>
+
+    <!-- Ticket Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal" id="ticketModal">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <span class="modal-key" id="modalKey"></span>
+            <span class="modal-type" id="modalType"></span>
+            <span class="modal-priority" id="modalPriority"></span>
+          </div>
+          <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(function() {
+  let data = null;
+
+  // ── Helpers ──
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  async function sha256(str) {
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ── Data Loading ──
+
+  async function loadData() {
+    const res = await fetch('data.json');
+    if (!res.ok) throw new Error('Failed to load data.json');
+    data = await res.json();
+  }
+
+  // ── Auth ──
+
+  async function checkAuth() {
+    await loadData();
+
+    // Set login title to project name
+    document.getElementById('loginTitle').textContent = data.project.name;
+    document.title = data.project.name;
+
+    const stored = sessionStorage.getItem('trellis_password');
+    if (stored) {
+      const hash = await sha256(stored);
+      if (hash === data.passwordHash) {
+        showApp();
+        return;
+      }
+      sessionStorage.removeItem('trellis_password');
+    }
+
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pw = document.getElementById('loginPassword').value;
+    const hash = await sha256(pw);
+    if (hash === data.passwordHash) {
+      sessionStorage.setItem('trellis_password', pw);
+      showApp();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginPassword').focus();
+    }
+  });
+
+  function showApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    render();
+  }
+
+  // ── Tabs ──
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab + '-view').classList.add('active');
+    });
+  });
+
+  // ── Board ──
+
+  function renderBoard() {
+    const boardEl = document.getElementById('board');
+    boardEl.innerHTML = '';
+
+    const boardColumns = data.board.columns.filter(c => !c.isBacklog && !c.isArchive);
+
+    for (const col of boardColumns) {
+      const colTickets = data.tickets.filter(t => t.status === col.id);
+
+      const colEl = document.createElement('div');
+      colEl.className = 'column';
+      colEl.innerHTML =
+        '<div class="column-header">' +
+          '<h3>' + escapeHtml(col.name) + '</h3>' +
+          '<span class="column-count">' + colTickets.length + '</span>' +
+        '</div>';
+
+      const body = document.createElement('div');
+      body.className = 'column-body';
+
+      for (const t of colTickets) {
+        body.appendChild(createCard(t));
+      }
+
+      colEl.appendChild(body);
+      boardEl.appendChild(colEl);
+    }
+  }
+
+  function createCard(ticket) {
+    const card = document.createElement('div');
+    card.className = 'card priority-left-' + ticket.priority;
+    card.addEventListener('click', () => openModal(ticket));
+
+    let metaRight = '';
+    if (ticket.points != null) {
+      metaRight = '<span class="card-points">' + ticket.points + 'pt</span>';
+    }
+
+    let labelsHtml = '';
+    if (ticket.labels && ticket.labels.length) {
+      labelsHtml = '<div class="card-labels">' +
+        ticket.labels.map(l => '<span class="card-label">' + escapeHtml(l) + '</span>').join('') +
+      '</div>';
+    }
+
+    card.innerHTML =
+      '<div class="card-header">' +
+        '<span class="card-key">' + escapeHtml(ticket.key) + '</span>' +
+        '<span class="card-priority priority-' + ticket.priority + '">' + ticket.priority + '</span>' +
+      '</div>' +
+      '<div class="card-summary">' + escapeHtml(ticket.summary) + '</div>' +
+      '<div class="card-meta">' +
+        '<span class="card-type">' + escapeHtml(ticket.type) + '</span>' +
+        '<div style="display:flex;gap:4px;align-items:center">' + metaRight + '</div>' +
+      '</div>' +
+      labelsHtml;
+
+    return card;
+  }
+
+  // ── Backlog ──
+
+  function renderBacklog() {
+    const el = document.getElementById('backlog');
+    const backlogColIds = data.board.columns.filter(c => c.isBacklog).map(c => c.id);
+    const backlogTickets = data.tickets.filter(t => backlogColIds.includes(t.status));
+
+    el.innerHTML =
+      '<div class="backlog-header">' +
+        '<h2>Backlog <span style="color:var(--text-muted);font-weight:400">(' + backlogTickets.length + ')</span></h2>' +
+      '</div>' +
+      (backlogColIds.length === 0
+        ? '<p style="color:var(--text-muted);padding:20px 0;text-align:center">No backlog column configured.</p>'
+        : renderTicketTable(backlogTickets));
+  }
+
+  // ── Archive ──
+
+  function renderArchive() {
+    const el = document.getElementById('archive');
+    const archiveColIds = data.board.columns.filter(c => c.isArchive).map(c => c.id);
+    const archivedTickets = data.tickets.filter(t => archiveColIds.includes(t.status));
+
+    el.innerHTML =
+      '<div class="backlog-header">' +
+        '<h2>Archive <span style="color:var(--text-muted);font-weight:400">(' + archivedTickets.length + ')</span></h2>' +
+      '</div>' +
+      (archiveColIds.length === 0
+        ? '<p style="color:var(--text-muted);padding:20px 0;text-align:center">No archive column configured.</p>'
+        : renderTicketTable(archivedTickets));
+  }
+
+  function renderTicketTable(ticketList) {
+    if (ticketList.length === 0) {
+      return '<p style="color:var(--text-muted);padding:20px 0;text-align:center">No tickets</p>';
+    }
+
+    const colMap = {};
+    data.board.columns.forEach(c => { colMap[c.id] = c.name; });
+
+    return '<table class="backlog-table">' +
+      '<thead><tr>' +
+        '<th>Key</th><th>Type</th><th>Priority</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Pts</th>' +
+      '</tr></thead><tbody>' +
+      ticketList.map(t =>
+        '<tr data-key="' + t.key + '">' +
+          '<td class="key-cell">' + escapeHtml(t.key) + '</td>' +
+          '<td>' + escapeHtml(t.type) + '</td>' +
+          '<td><span class="card-priority priority-' + t.priority + '">' + t.priority + '</span></td>' +
+          '<td class="summary-cell">' + escapeHtml(t.summary) + '</td>' +
+          '<td class="status-cell"><span class="status-badge">' + (colMap[t.status] || t.status) + '</span></td>' +
+          '<td>' + (t.assignee || '<span style="color:var(--text-muted)">&ndash;</span>') + '</td>' +
+          '<td>' + (t.points != null ? t.points : '<span style="color:var(--text-muted)">&ndash;</span>') + '</td>' +
+        '</tr>'
+      ).join('') +
+    '</tbody></table>';
+  }
+
+  // ── Ticket Detail Modal ──
+
+  function openModal(ticket) {
+    const overlay = document.getElementById('modalOverlay');
+    const colMap = {};
+    data.board.columns.forEach(c => { colMap[c.id] = c.name; });
+
+    document.getElementById('modalKey').textContent = ticket.key;
+    document.getElementById('modalType').textContent = ticket.type;
+    const priorityEl = document.getElementById('modalPriority');
+    priorityEl.textContent = ticket.priority;
+    priorityEl.className = 'modal-priority priority-' + ticket.priority;
+
+    const body = document.getElementById('modalBody');
+
+    const desc = ticket.description
+      ? '<div class="detail-section"><h4>Description</h4><p>' + escapeHtml(ticket.description) + '</p></div>'
+      : '';
+
+    const ac = ticket.acceptanceCriteria
+      ? '<div class="detail-section"><h4>Acceptance Criteria</h4><pre>' + escapeHtml(ticket.acceptanceCriteria) + '</pre></div>'
+      : '';
+
+    const comments = (ticket.comments && ticket.comments.length)
+      ? '<div class="detail-section"><h4>Comments (' + ticket.comments.length + ')</h4>' +
+        '<div class="comments-list">' +
+        ticket.comments.map(c =>
+          '<div class="comment-item">' +
+            '<div class="comment-meta"><span>' + escapeHtml(c.author) + ' &middot; ' + new Date(c.created).toLocaleString() + '</span></div>' +
+            '<div class="comment-body">' + escapeHtml(c.body) + '</div>' +
+          '</div>'
+        ).join('') +
+        '</div></div>'
+      : '<div class="detail-section"><h4>Comments (0)</h4><p style="color:var(--text-muted);font-style:italic">No comments</p></div>';
+
+    const labelsHtml = (ticket.labels && ticket.labels.length)
+      ? ticket.labels.map(l => '<span class="card-label">' + escapeHtml(l) + '</span>').join(' ')
+      : '<span class="detail-value empty">None</span>';
+
+    body.innerHTML =
+      '<h3>' + escapeHtml(ticket.summary) + '</h3>' +
+      '<div class="detail-grid">' +
+        '<div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">' + (colMap[ticket.status] || ticket.status) + '</span></div>' +
+        '<div class="detail-item"><span class="detail-label">Priority</span><span class="detail-value"><span class="card-priority priority-' + ticket.priority + '">' + ticket.priority + '</span></span></div>' +
+        '<div class="detail-item"><span class="detail-label">Type</span><span class="detail-value">' + escapeHtml(ticket.type) + '</span></div>' +
+        '<div class="detail-item"><span class="detail-label">Assignee</span><span class="detail-value' + (!ticket.assignee ? ' empty' : '') + '">' + (escapeHtml(ticket.assignee) || 'Unassigned') + '</span></div>' +
+        '<div class="detail-item"><span class="detail-label">Story Points</span><span class="detail-value' + (ticket.points == null ? ' empty' : '') + '">' + (ticket.points != null ? ticket.points : 'None') + '</span></div>' +
+        '<div class="detail-item"><span class="detail-label">T-Shirt Size</span><span class="detail-value' + (!ticket.tshirtSize ? ' empty' : '') + '">' + (ticket.tshirtSize || 'None') + '</span></div>' +
+        '<div class="detail-item"><span class="detail-label">Reporter</span><span class="detail-value' + (!ticket.reporter ? ' empty' : '') + '">' + (escapeHtml(ticket.reporter) || 'None') + '</span></div>' +
+        '<div class="detail-item"><span class="detail-label">Labels</span><span class="detail-value">' + labelsHtml + '</span></div>' +
+      '</div>' +
+      desc +
+      ac +
+      comments +
+      '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted)">' +
+        'Created: ' + new Date(ticket.created).toLocaleString() + ' &middot; Updated: ' + new Date(ticket.updated).toLocaleString() +
+      '</div>';
+
+    overlay.classList.add('open');
+  }
+
+  // Close modal
+  document.getElementById('modalClose').addEventListener('click', () => {
+    document.getElementById('modalOverlay').classList.remove('open');
+  });
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+  });
+
+  // Backlog/archive table row clicks
+  document.addEventListener('click', (e) => {
+    const row = e.target.closest('.backlog-table tbody tr');
+    if (row) {
+      const key = row.dataset.key;
+      const ticket = data.tickets.find(t => t.key === key);
+      if (ticket) openModal(ticket);
+    }
+  });
+
+  // ── Render ──
+
+  function render() {
+    document.getElementById('projectName').textContent = data.project.name;
+    document.title = data.project.name;
+    renderBoard();
+    renderBacklog();
+    renderArchive();
+  }
+
+  // ── Init ──
+
+  checkAuth();
+})();
+  </script>
+</body>
+</html>
