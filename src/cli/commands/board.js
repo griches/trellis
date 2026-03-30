@@ -17,7 +17,7 @@ export function registerBoardCommand(program) {
         if (paths && paths.length > 1) {
           // Multi-project mode
           const port = parseInt(opts.port) || 4000;
-          const server = startMultiServer(paths, port);
+          const server = await startMultiServer(paths, port);
 
           server.on('listening', () => {
             const url = `http://localhost:${port}`;
@@ -39,7 +39,7 @@ export function registerBoardCommand(program) {
           const config = loadConfig(trellisPath);
           const port = parseInt(opts.port) || config.server?.port || 4000;
 
-          const server = startServer(trellisPath, port);
+          const server = await startServer(trellisPath, port);
 
           server.on('listening', () => {
             const url = `http://localhost:${port}`;

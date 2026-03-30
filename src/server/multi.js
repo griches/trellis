@@ -5,10 +5,12 @@ import { requireProject, loadConfig } from '../core/project.js';
 import { createTicket, loadTicket, updateTicket, deleteTicket, listTickets } from '../core/ticket.js';
 import { addComment, deleteComment, listComments } from '../core/comment.js';
 import { listSprints, loadSprint, createSprint } from '../core/sprint.js';
+import { killExistingServer } from './kill-existing.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export function startMultiServer(projectPaths, port = 4000) {
+export async function startMultiServer(projectPaths, port = 4000) {
+  await killExistingServer(port);
   const app = express();
   app.use(express.json());
 

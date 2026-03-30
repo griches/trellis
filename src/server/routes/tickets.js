@@ -1,4 +1,5 @@
 import { createTicket, loadTicket, updateTicket, deleteTicket, listTickets } from '../../core/ticket.js';
+import { loadConfig, detectProjectVersion } from '../../core/project.js';
 
 export function registerTicketRoutes(app) {
   app.get('/api/tickets', (req, res) => {
@@ -38,7 +39,22 @@ export function registerTicketRoutes(app) {
 
   app.put('/api/tickets/:key', (req, res) => {
     try {
-      const ticket = updateTicket(req.trellisPath, req.params.key.toUpperCase(), req.body);
+      const key = req.params.key.toUpperCase();
+      const fields = req.body;
+
+      // Auto-set fixVersion when moving out of backlog without one
+      if (fields.status) {
+        const existing = loadTicket(req.trellisPath, key);
+        const config = loadConfig(req.trellisPath);
+        const backlogIds = config.board.columns.filter(c => c.isBacklog).map(c => c.id);
+        const isLeavingBacklog = backlogIds.includes(existing.status) && !backlogIds.includes(fields.status);
+        if (isLeavingBacklog && !existing.fixVersion && !fields.fixVersion) {
+          const version = detectProjectVersion(req.trellisPath);
+          if (version) fields.fixVersion = `v${version}`;
+        }
+      }
+
+      const ticket = updateTicket(req.trellisPath, key, fields);
       res.json(ticket);
     } catch (err) {
       res.status(404).json({ error: err.message });

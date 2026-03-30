@@ -1,4 +1,4 @@
-import { loadConfig, saveConfig } from '../../core/project.js';
+import { loadConfig, saveConfig, detectProjectVersion } from '../../core/project.js';
 
 export function registerBoardRoutes(app) {
   app.get('/api/config', (req, res) => {
@@ -7,6 +7,15 @@ export function registerBoardRoutes(app) {
       res.json(config);
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/project-version', (req, res) => {
+    try {
+      const version = detectProjectVersion(req.trellisPath);
+      res.json({ version });
+    } catch (err) {
+      res.json({ version: null });
     }
   });
 

@@ -15,6 +15,7 @@ const TICKET_DEFAULTS = {
   tshirtSize: null,
   acceptanceCriteria: '',
   labels: [],
+  fixVersion: null,
   sprint: null,
   comments: [],
   created: '',

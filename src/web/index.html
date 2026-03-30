@@ -91,9 +91,14 @@
         <label>Acceptance Criteria
           <textarea name="acceptanceCriteria" rows="3"></textarea>
         </label>
-        <label>Labels (comma-separated)
-          <input type="text" name="labels">
-        </label>
+        <div class="form-row">
+          <label>Fix Version
+            <input type="text" name="fixVersion" id="createFixVersion" placeholder="e.g. v2.0">
+          </label>
+          <label>Labels (comma-separated)
+            <input type="text" name="labels">
+          </label>
+        </div>
         <div class="form-actions">
           <button type="button" class="btn-secondary" id="createCancel">Cancel</button>
           <button type="submit" class="btn-primary">Create</button>

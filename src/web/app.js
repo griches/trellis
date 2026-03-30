@@ -45,12 +45,28 @@ function renderBoard() {
 
     const colEl = document.createElement('div');
     colEl.className = 'column';
-    colEl.innerHTML = `
-      <div class="column-header">
-        <h3>${col.name}</h3>
+    const headerEl = document.createElement('div');
+    headerEl.className = 'column-header';
+    headerEl.innerHTML = `
+      <h3>${col.name}</h3>
+      <div style="display:flex;align-items:center;gap:6px">
+        ${col.isDone && colTickets.length > 0 ? '<button class="btn-archive-all">Archive All</button>' : ''}
         <span class="column-count">${colTickets.length}</span>
       </div>
     `;
+
+    if (col.isDone && colTickets.length > 0) {
+      headerEl.querySelector('.btn-archive-all').addEventListener('click', async () => {
+        const archiveCol = config.board.columns.find(c => c.isArchive);
+        if (!archiveCol) return;
+        await Promise.all(colTickets.map(t =>
+          api(`/tickets/${t.key}`, { method: 'PUT', body: { status: archiveCol.id } })
+        ));
+        await refresh();
+      });
+    }
+
+    colEl.appendChild(headerEl);
 
     const body = document.createElement('div');
     body.className = 'column-body';
@@ -99,6 +115,9 @@ function createCard(ticket) {
   card.addEventListener('click', () => openTicketModal(ticket.key));
 
   let metaRight = '';
+  if (ticket.fixVersion) {
+    metaRight += `<span class="version-badge">${escapeHtml(ticket.fixVersion)}</span>`;
+  }
   if (ticket.points != null) {
     metaRight += `<span class="card-points">${ticket.points}pt</span>`;
   }
@@ -150,13 +169,71 @@ function renderArchive() {
   const archiveColIds = config.board.columns.filter(c => c.isArchive).map(c => c.id);
   const archivedTickets = tickets.filter(t => archiveColIds.includes(t.status));
 
+  // Sort by fixVersion descending (semver-aware), unversioned last
+  archivedTickets.sort((a, b) => {
+    const va = a.fixVersion || '';
+    const vb = b.fixVersion || '';
+    if (!va && !vb) return a.key.localeCompare(b.key);
+    if (!va) return 1;
+    if (!vb) return -1;
+    return -compareVersions(va, vb) || a.key.localeCompare(b.key);
+  });
+
   archiveEl.innerHTML = `
     <div class="backlog-header">
       <h2>Archive <span style="color:var(--text-muted);font-weight:400">(${archivedTickets.length})</span></h2>
     </div>
     ${archiveColIds.length === 0
       ? '<p style="color:var(--text-muted);padding:20px 0;text-align:center">No archive column configured. Add a column with <code>"isArchive": true</code> to your board config.</p>'
-      : renderTicketTable(archivedTickets)}
+      : renderArchiveTable(archivedTickets)}
+  `;
+}
+
+function compareVersions(a, b) {
+  const pa = a.replace(/^v/i, '').split('.').map(Number);
+  const pb = b.replace(/^v/i, '').split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = pa[i] || 0;
+    const nb = pb[i] || 0;
+    if (na !== nb) return na - nb;
+  }
+  return 0;
+}
+
+function renderArchiveTable(ticketList) {
+  if (ticketList.length === 0) {
+    return `<p style="color:var(--text-muted);padding:20px 0;text-align:center">No tickets</p>`;
+  }
+
+  const colMap = Object.fromEntries(config.board.columns.map(c => [c.id, c.name]));
+
+  return `
+    <table class="backlog-table">
+      <thead>
+        <tr>
+          <th>Key</th>
+          <th>Version</th>
+          <th>Type</th>
+          <th>Priority</th>
+          <th>Summary</th>
+          <th>Assignee</th>
+          <th>Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${ticketList.map(t => `
+          <tr data-key="${t.key}">
+            <td class="key-cell">${t.key}</td>
+            <td>${t.fixVersion ? `<span class="version-badge">${escapeHtml(t.fixVersion)}</span>` : '<span style="color:var(--text-muted)">–</span>'}</td>
+            <td>${t.type}</td>
+            <td><span class="card-priority priority-${t.priority}">${t.priority}</span></td>
+            <td class="summary-cell">${escapeHtml(t.summary)}</td>
+            <td>${t.assignee || '<span style="color:var(--text-muted)">–</span>'}</td>
+            <td>${t.points != null ? t.points : '<span style="color:var(--text-muted)">–</span>'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
   `;
 }
 
@@ -259,6 +336,10 @@ async function openTicketModal(key) {
           <input type="text" class="edit-input-sm" id="editReporter" value="${escapeAttr(ticket.reporter || '')}">
         </div>
         <div class="detail-item">
+          <span class="detail-label">Fix Version</span>
+          <input type="text" class="edit-input-sm" id="editFixVersion" value="${escapeAttr(ticket.fixVersion || '')}" placeholder="e.g. 1.2.0">
+        </div>
+        <div class="detail-item">
           <span class="detail-label">Labels</span>
           <input type="text" class="edit-input-sm" id="editLabels" value="${escapeAttr((ticket.labels || []).join(', '))}">
         </div>
@@ -273,6 +354,7 @@ async function openTicketModal(key) {
       </label>
 
       <div class="edit-actions">
+        <button class="btn-danger" id="editDelete">Delete</button>
         <button class="btn-primary" id="editSave">Save</button>
       </div>
     </div>
@@ -314,11 +396,20 @@ async function openTicketModal(key) {
       acceptanceCriteria: document.getElementById('editAC').value,
       points: document.getElementById('editPoints').value ? parseInt(document.getElementById('editPoints').value) : null,
       tshirtSize: document.getElementById('editSize').value || null,
+      fixVersion: document.getElementById('editFixVersion').value || null,
       labels: document.getElementById('editLabels').value ? document.getElementById('editLabels').value.split(',').map(l => l.trim()).filter(Boolean) : [],
     };
     await api(`/tickets/${ticket.key}`, { method: 'PUT', body: fields });
     await refresh();
     openTicketModal(ticket.key);
+  });
+
+  // Delete handler
+  document.getElementById('editDelete').addEventListener('click', async () => {
+    if (!confirm(`Delete ${ticket.key}? This cannot be undone.`)) return;
+    await api(`/tickets/${ticket.key}`, { method: 'DELETE' });
+    document.getElementById('modalOverlay').classList.remove('open');
+    await refresh();
   });
 
   // Comment handler
@@ -363,7 +454,7 @@ document.getElementById('headerCreateBtn').addEventListener('click', () => {
 
 // ── Create Modal ──
 
-function openCreateModal(defaultStatus = 'backlog') {
+async function openCreateModal(defaultStatus = 'backlog') {
   const overlay = document.getElementById('createOverlay');
 
   // Populate selects
@@ -391,6 +482,14 @@ function openCreateModal(defaultStatus = 'backlog') {
   statusSelect.value = defaultStatus;
   prioritySelect.value = 'Medium';
 
+  // Pre-fill fixVersion from detected project version
+  try {
+    const { version } = await api('/project-version');
+    if (version) {
+      document.getElementById('createFixVersion').value = `v${version}`;
+    }
+  } catch {}
+
   overlay.classList.add('open');
 }
 
@@ -409,6 +508,7 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
 
   if (form.points.value) data.points = parseInt(form.points.value);
   if (form.tshirtSize.value) data.tshirtSize = form.tshirtSize.value;
+  if (form.fixVersion.value) data.fixVersion = form.fixVersion.value;
   if (form.labels.value) data.labels = form.labels.value.split(',').map(l => l.trim()).filter(Boolean);
 
   await api('/tickets', { method: 'POST', body: data });

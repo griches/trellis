@@ -189,6 +189,35 @@ header {
   background: rgba(88, 166, 255, 0.04);
 }
 
+.btn-archive-all {
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-archive-all:hover {
+  background: var(--accent-dim);
+  color: var(--text);
+  border-color: var(--accent-dim);
+}
+
+.version-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(63, 185, 80, 0.1);
+  color: var(--green);
+  font-weight: 500;
+}
+
 /* Cards */
 .card {
   padding: 14px 14px 14px 16px;
@@ -695,6 +724,23 @@ select.detail-value:focus {
 .btn-secondary:hover {
   background: var(--bg);
   color: var(--text);
+}
+
+.btn-danger {
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: auto;
+  transition: background 0.15s;
+}
+
+.btn-danger:hover {
+  background: rgba(248, 81, 73, 0.15);
 }
 
 /* Edit form */

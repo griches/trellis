@@ -5,10 +5,12 @@ import { registerTicketRoutes } from './routes/tickets.js';
 import { registerBoardRoutes } from './routes/board.js';
 import { registerCommentRoutes } from './routes/comments.js';
 import { registerSprintRoutes } from './routes/sprints.js';
+import { killExistingServer } from './kill-existing.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export function startServer(trellisPath, port = 4000) {
+export async function startServer(trellisPath, port = 4000) {
+  await killExistingServer(port);
   const app = express();
 
   app.use(express.json());

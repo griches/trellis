@@ -140,3 +140,35 @@ export function getStatuses(config) {
 export function getProjectDir(trellisPath) {
   return path.dirname(trellisPath);
 }
+
+/**
+ * Detect the project version from common project files.
+ * Returns a version string (e.g. "2.0") or null if not found.
+ */
+export function detectProjectVersion(trellisPath) {
+  const projectDir = path.dirname(trellisPath);
+
+  // Check Xcode project (MARKETING_VERSION)
+  try {
+    const xcodeprojs = fs.readdirSync(projectDir).filter(f => f.endsWith('.xcodeproj'));
+    for (const xp of xcodeprojs) {
+      const pbx = path.join(projectDir, xp, 'project.pbxproj');
+      if (fs.existsSync(pbx)) {
+        const content = fs.readFileSync(pbx, 'utf8');
+        const match = content.match(/MARKETING_VERSION\s*=\s*([^;]+);/);
+        if (match) return match[1].trim();
+      }
+    }
+  } catch {}
+
+  // Check package.json
+  try {
+    const pkg = path.join(projectDir, 'package.json');
+    if (fs.existsSync(pkg)) {
+      const data = JSON.parse(fs.readFileSync(pkg, 'utf8'));
+      if (data.version) return data.version;
+    }
+  } catch {}
+
+  return null;
+}
